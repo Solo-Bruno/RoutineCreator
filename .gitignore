@@ -1,0 +1,16 @@
+# Archivos y directorios de entorno
+.env
+.venv/
+env/
+venv/
+
+# Archivos de PyCharm o IDEs
+.idea/
+
+# Bytecode y compilados
+__pycache__/
+*.pyc
+
+# Directorios de compilación
+dist/
+build/

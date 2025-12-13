@@ -5,7 +5,8 @@ def createExcercise(conn, cursor):
     CREATE TABLE IF NOT EXISTS Exercise (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(255),
-    type VARCHAR(255)
+    type VARCHAR(255),
+    img VARCHAR(255)
     );
     """
     try:
@@ -15,6 +16,7 @@ def createExcercise(conn, cursor):
     except (Exception, psycopg2.Error) as error:
         print(error)
         conn.rollback()
+        raise
 
 
 def createRoutineTable(conn, cursor):
@@ -32,7 +34,7 @@ def createRoutineTable(conn, cursor):
     except (Exception, psycopg2.Error) as error:
         print(f"❌ Error creating Routine table: {error}")
         conn.rollback()
-
+        raise
 
 def createDayTable(conn, cursor):
     """Crea la tabla Day (Días) con clave foránea a Routine (1:N)."""
@@ -52,7 +54,7 @@ def createDayTable(conn, cursor):
     except (Exception, psycopg2.Error) as error:
         print(f"❌ Error creating Day table: {error}")
         conn.rollback()
-
+        raise
 
 def createSetTable(conn, cursor):
     """Crea la tabla Set (ejecuciones) con claves foráneas a Day y Exercise."""
@@ -77,6 +79,7 @@ def createSetTable(conn, cursor):
     except (Exception, psycopg2.Error) as error:
         print(f"❌ Error creating Set table: {error}")
         conn.rollback()
+        raise
 
 def initialization(conn, cursor):
     try:
@@ -87,4 +90,5 @@ def initialization(conn, cursor):
     except (Exception, psycopg2.Error) as error:
         cursor.close()
         conn.close()
+        raise error
 

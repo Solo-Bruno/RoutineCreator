@@ -4,17 +4,13 @@ import os
 
 load_dotenv()
 
-def getConnection():
-    try:
-        parametros = {
-            'user': os.getenv("DB_USER"),
-            'password': os.getenv("DB_PASSWORD"),
-            'host': os.getenv("DB_HOST"),
-            'database': os.getenv("DB_DATABASE"),
-        }
+class Connection:
+    conn = psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        database=os.getenv("DB_DATABASE"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        port=os.getenv("DB_PORT")
+    )
 
-        connection = psycopg2.connect(**parametros)
-        print("Connection established")
-        return connection
-    except (Exception, psycopg2.Error) as error:
-        print(error)
+    conn.autocommit = True

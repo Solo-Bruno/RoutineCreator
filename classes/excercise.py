@@ -5,7 +5,7 @@ class Excercise:
     def inster(self, name, type, img):
         cur = self.conn.cursor()
         try:
-            cur.execute("INSERT INTO Exercise (nombre, type, img) VALUES (%s, %s, %s)", (name, type, img))
+            cur.execute("INSERT INTO Exercise (nombre, type, img) VALUES (%s, %s, %s);", (name, type, img))
             self.conn.commit()
             return True
         except:

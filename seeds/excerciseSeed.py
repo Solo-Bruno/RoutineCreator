@@ -1,4 +1,5 @@
 from classes.excercise import Excercise
+import psycopg2
 
 exercises_to_insert = [
     ("PRESS PLANO (BARRA)", "PECTORALES"),
@@ -163,13 +164,17 @@ class SeedExcercise:
         self.conn = conn
     
     def run(self):
+        ex = Excercise(self.conn)
+        cant = ex.totales()
         try:
-            ex = Excercise(self.conn)
-            img = ""
-            for name, type in exercises_to_insert:
-                ex.inster(name, type, img)
-        except:
-            raise
+            if(cant == 0):
+                img = ""
+                for name, type in exercises_to_insert:
+                    ex.inster(name, type, img)
+            else:
+                print("Las Seeds ya fueron ejecutadas correctamente")
+        except psycopg2.Error as e:
+            raise e
           
 
 

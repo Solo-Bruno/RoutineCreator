@@ -20,7 +20,6 @@ def createExcercise(conn, cursor):
 
 
 def createRoutineTable(conn, cursor):
-    """Crea la tabla principal Routine."""
     TableRoutine = """
     CREATE TABLE IF NOT EXISTS Routine (
         id SERIAL PRIMARY KEY,
@@ -37,7 +36,6 @@ def createRoutineTable(conn, cursor):
         raise
 
 def createDayTable(conn, cursor):
-    """Crea la tabla Day (Días) con clave foránea a Routine (1:N)."""
     TableDay = """
     CREATE TABLE IF NOT EXISTS Day (
         id SERIAL PRIMARY KEY,
@@ -56,20 +54,33 @@ def createDayTable(conn, cursor):
         conn.rollback()
         raise
 
+def createTableDayExercise(conn, cursor):
+    DayExercise = """  
+    CREATE TABLE IF NOT EXISTS Day_Exercise (
+        id SERIAL PRIMARY KEY,
+        day_id INTEGER REFERENCES Day(id) ON DELETE CASCADE,
+        exercise_id INTEGER REFERENCES Exercise(id) ON DELETE CASCADE,
+        orden INTEGER 
+    );
+    """
+    try:
+        cursor.execute(DayExercise)
+        conn.commit()
+        print("✅ Table created DayExcercise successfully.")
+    except (Exception, psycopg2.Error) as error:
+        print(f"❌ Error creating Set table: {error}")
+        conn.rollback()
+        raise
+
 def createSetTable(conn, cursor):
-    """Crea la tabla Set (ejecuciones) con claves foráneas a Day y Exercise."""
-    # Las columnas se renombran a 'cantidad' y 'repeticiones' para claridad.
     TableSet = """
     CREATE TABLE IF NOT EXISTS Set (
         id SERIAL PRIMARY KEY,
         cantidad INTEGER NOT NULL,
         repeticiones INTEGER NOT NULL,
-
-        -- FK al día al que pertenece este set
-        day_id INTEGER REFERENCES Day(id) ON DELETE CASCADE,
-
-        -- FK al ejercicio que se realiza en este set
-        exercise_id INTEGER REFERENCES Exercise(id) ON DELETE RESTRICT
+    
+        -- FK a la tabla intermedia
+        day_exercise_id INTEGER REFERENCES Day_Exercise(id) ON DELETE CASCADE
     );
     """
     try:
@@ -86,6 +97,7 @@ def initialization(conn, cursor):
         createExcercise(conn, cursor)
         createRoutineTable(conn, cursor)
         createDayTable(conn, cursor)
+        createTableDayExercise(conn, cursor)
         createSetTable(conn, cursor)
     except (Exception, psycopg2.Error) as error:
         cursor.close()

@@ -42,3 +42,16 @@ class Excercise:
             return rows
         except:
             self.conn.rollback()
+
+    def totales(self):
+        cur = self.conn.cursor()
+        try:
+            cur.execute("SELECT COUNT(*) FROM Exercise")
+            rows = cur.fetchone()[0]
+            cur.close()
+            return rows
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+        finally:
+            cur.close()

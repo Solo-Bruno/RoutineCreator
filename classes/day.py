@@ -15,3 +15,30 @@ class Day:
         except Exception as e:
             self.conn.rollback()
             raise e
+        finally:
+            cur.close()
+
+    def findAllByRoutineId(self, routine_id: int):
+        cur = self.conn.cursor()
+        try:
+            cur.execute("SELECT * FROM Day WHERE routine_id = %s;", (routine_id,))
+            rows = cur.fetchall()
+            return rows
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+        finally:
+            cur.close()
+
+    def findById(self, day_id: int, routine_id: int):
+        cur = self.conn.cursor()
+        try:
+            cur.execute("SELECT * FROM Day WHERE id = %s;", (day_id,))
+            day = cur.fetchOne()
+            return day
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+        finally:
+            cur.close()
+

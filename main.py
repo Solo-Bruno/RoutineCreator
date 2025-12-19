@@ -3,14 +3,20 @@ import tables
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
-
+from controller.excersiceController import ExcerciseController
 from seeds.seed import Seed
-from classes.excercise import Excercise
+from controller.routineController import routineController
+from controller.dayController import dayController
+from typing import List
 
 
 def main():
     conn = Connection.conn
     cursor = conn.cursor()
+
+    rout_con = routineController(conn)
+    excer_con = ExcerciseController(conn)
+    dey_con = dayController(conn)
 
     "Init tables"
 
@@ -19,6 +25,9 @@ def main():
 
     def crear_rutina():
         seleccionados = [nombre for nombre, var in dict_dias.items() if var.get()]
+        routine = rout_con.crearRutina(input_nombre.get(), seleccionados)
+        misDIas = dey_con.findDayByRoutineId(routine)
+        print(misDIas)
         notebook.select(1)
 
     def evento_tabla(event):
@@ -38,15 +47,47 @@ def main():
 
     """"
     def actualizar_tabla(event):
-        categoria_seleccionada = combo_categorias.get()
-        datos_para_mostrar = Excercise(conn).findByType(categoria_seleccionada)
+        categoria_seleccionada = combo_filtro.get()
+        datos_para_mostrar = excer_con.findByTypeExcercise(categoria_seleccionada)
         print("Categoria seleccionada: ", categoria_seleccionada)
-        for item in tabla_datos.get_children():
-            tabla_datos.delete(item)
+        for item in tabla_selector.get_children():
+            tabla_selector.delete(item)
 
         for fila in datos_para_mostrar:
             fila_con_accion = list(fila)  + ["✅ Agregar"]
-            tabla_datos.insert('', tk.END, values=fila_con_accion)
+            tabla_selector.insert('', tk.END, values=fila_con_accion)
+
+    tablas_por_dia = {}
+
+    def renderizar_pestanas_rutina(dias_seleccionados: List[str]):
+        for tab in notebook_dias.tabs():
+            notebook_dias.forget(tab)
+        tablas_por_dia.clear()
+
+        # 3. Crear una pestaña por cada día seleccionado
+        for dia in dias_seleccionados:
+            tab_dia = ttk.Frame(notebook_dias, padding="10")
+            notebook_dias.add(tab_dia, text=dia)
+
+            # Configurar layout de la pestaña
+            tab_dia.columnconfigure(0, weight=1)
+            tab_dia.rowconfigure(1, weight=1)
+
+            ttk.Label(tab_dia, text=f"Rutina para el día: {dia}", font=("Arial", 11, "bold")).grid(row=0, column=0,
+                                                                                                   pady=10)
+
+            # Tabla interactiva para este día específico
+            cols_rut = ("Ejercicio", "Series", "Reps", "Nota")
+            tabla_dia = ttk.Treeview(tab_dia, columns=cols_rut, show="headings")
+
+            for col in cols_rut:
+                tabla_dia.heading(col, text=col)
+                tabla_dia.column(col, width=80)
+
+            tabla_dia.grid(row=1, column=0, sticky="nsew")
+
+            # Guardamos la referencia de la tabla asociada a este día
+            tablas_por_dia[dia] = tabla_dia
 
     def accion_completado(event):
 
@@ -148,7 +189,6 @@ def main():
 
 
 
-
     tabla_rutinas.bind("<<TreeviewSelect>>", evento_tabla)
 
     ## /////////////////////////////////////////////////////////////////////////////////##
@@ -157,8 +197,45 @@ def main():
     frame_nueva_rutina = ttk.Frame(notebook, padding="20")
     notebook.add(frame_nueva_rutina, text="Nueva Rutina")
 
-    ttk.Label(frame_nueva_rutina, text="Formulario para crear nueva rutina", font=("Arial", 14)).pack()
+    """
+    #Nuevo Frame
+    frame_nueva_rutina.columnconfigure(0, weight=1)
+    frame_nueva_rutina.columnconfigure(1, weight=1)
+    frame_nueva_rutina.rowconfigure(0, weight=1)
 
+    #Izquierda
+    container_ejercicios = ttk.LabelFrame(frame_nueva_rutina, text=" Banco de Ejercicios ", padding="10")
+    container_ejercicios.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
+
+    # Configuración interna del panel izquierdo
+    container_ejercicios.columnconfigure(0, weight=1)
+    container_ejercicios.rowconfigure(2, weight=1)
+    ttk.Label(container_ejercicios, text="Grupo muscular:", font=("Arial", 10, "bold")).grid(row=0, column=0,
+                                                                                             sticky="w", pady=5)
+
+    combo_filtro = ttk.Combobox(container_ejercicios, values=tipo,
+                                state="readonly")
+    combo_filtro.grid(row=1, column=0, sticky="ew", pady=5)
+
+    combo_filtro.bind("<<ComboboxSelected>>", actualizar_tabla)
+
+    columnas = ("Id","Nombre", "Tipo", "Imagen", "Action")
+    tabla_selector = ttk.Treeview(container_ejercicios, columns=columnas, show="headings", height=15)
+    tabla_selector.heading("Id", text="Id")
+    tabla_selector.heading("Nombre", text="Nombre")
+    tabla_selector.heading("Tipo", text="Tipo")
+    tabla_selector.heading("Imagen", text="Imagen")
+    tabla_selector.heading("Action", text="Tick Correcto")
+    tabla_selector.grid(row=2, column=0, sticky="nsew", pady=10)
+
+    tabla_selector.column("Id", width=0, stretch=tk.NO)
+    tabla_selector.column("Imagen", width=0, stretch=tk.NO)
+
+    # --- PANEL DERECHO: Pestañas de Días (Verde/Naranja en tu diagrama) ---
+    # Aquí creamos un Notebook interno que contendrá los días
+    notebook_dias = ttk.Notebook(frame_nueva_rutina)
+    notebook_dias.grid(row=0, column=1, sticky="nsew")
+|   """
     root.mainloop()
 
 

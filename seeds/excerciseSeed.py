@@ -1,4 +1,4 @@
-from classes.excercise import Excercise
+from modelo.excercise import Excercise
 import psycopg2
 
 exercises_to_insert = [

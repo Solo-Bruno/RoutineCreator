@@ -1,21 +1,21 @@
-from modelo.excercise import Excercise
+from modelo.exercise import Exercise
 
 class ExcerciseController:
     def __init__(self, conn):
         self.conn = conn
-        self.excercise = Excercise(self.conn)
+        self.exercise = Exercise(self.conn)
 
 
     def findAllExcercises(self):
         try:
-            ret = self.excercise.findAll()
+            ret = self.exercise.findAll()
             return ret
         except Exception as e:
             raise e
 
-    def findByTypeExcercise(self, excerciseType):
+    def findByTypeExcercise(self, exerciseType):
         try:
-            ret = self.excercise.findByType(excerciseType)
+            ret = self.exercise.findByType(exerciseType)
             return ret
         except Exception as e:
             raise e

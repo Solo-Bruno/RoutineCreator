@@ -1,7 +1,7 @@
 from typing import List
 from modelo import day
 
-class dayController:
+class DayController:
     def __init__(self, conn):
         self.conn = conn
         self.day = day.Day(self.conn)

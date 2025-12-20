@@ -1,4 +1,4 @@
-from .excerciseSeed import SeedExcercise
+from .exerciseSeed import SeedExercise
 
 class Seed:
     def __init__(self, conn):
@@ -7,7 +7,7 @@ class Seed:
     def init(self):
         try:
             print("Iniciando Seed")
-            SeedExcercise(self.conn).run()
+            SeedExercise(self.conn).run()
             print("Las seeds se cargaron correctamente")
         except:
             raise "Error en las seeds"

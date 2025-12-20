@@ -1,4 +1,4 @@
-from modelo.excercise import Excercise
+from modelo.exercise import Exercise
 import psycopg2
 
 exercises_to_insert = [
@@ -159,12 +159,12 @@ exercises_to_insert = [
 ]
 
 
-class SeedExcercise:
+class SeedExercise:
     def __init__(self, conn):
         self.conn = conn
     
     def run(self):
-        ex = Excercise(self.conn)
+        ex = Exercise(self.conn)
         cant = ex.totales()
         try:
             if(cant == 0):

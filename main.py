@@ -3,10 +3,11 @@ import tables
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
-from controller.excersiceController import ExcerciseController
+from controller.exersiceController import ExcerciseController
 from seeds.seed import Seed
 from controller.routineController import routineController
-from controller.dayController import dayController
+from controller.dayController import DayController
+from controller.day_exersiceController import DayExersiceController
 from typing import List
 
 
@@ -15,8 +16,10 @@ def main():
     cursor = conn.cursor()
 
     rout_con = routineController(conn)
-    excer_con = ExcerciseController(conn)
-    dey_con = dayController(conn)
+    exer_con = ExcerciseController(conn)
+    dey_con = DayController(conn)
+    day_exercise = DayExersiceController(conn)
+
 
     "Init tables"
 
@@ -27,7 +30,7 @@ def main():
         seleccionados = [nombre for nombre, var in dict_dias.items() if var.get()]
         routine = rout_con.crearRutina(input_nombre.get(), seleccionados)
         misDIas = dey_con.findDayByRoutineId(routine)
-        print(misDIas)
+        renderizar_pestanas_rutina(misDIas, routine)
         notebook.select(1)
 
     def evento_tabla(event):
@@ -45,11 +48,10 @@ def main():
             btn_nuevo.config(state="disabled")
             label_nota.pack()
 
-    """"
+
     def actualizar_tabla(event):
         categoria_seleccionada = combo_filtro.get()
-        datos_para_mostrar = excer_con.findByTypeExcercise(categoria_seleccionada)
-        print("Categoria seleccionada: ", categoria_seleccionada)
+        datos_para_mostrar = exer_con.findByTypeExcercise(categoria_seleccionada)
         for item in tabla_selector.get_children():
             tabla_selector.delete(item)
 
@@ -59,47 +61,129 @@ def main():
 
     tablas_por_dia = {}
 
-    def renderizar_pestanas_rutina(dias_seleccionados: List[str]):
+    def renderizar_pestanas_rutina(dias_seleccionados: List[str], routine_id: int):
         for tab in notebook_dias.tabs():
             notebook_dias.forget(tab)
         tablas_por_dia.clear()
 
-        # 3. Crear una pestaña por cada día seleccionado
         for dia in dias_seleccionados:
             tab_dia = ttk.Frame(notebook_dias, padding="10")
-            notebook_dias.add(tab_dia, text=dia)
+            notebook_dias.add(tab_dia, text=dia[1])
 
-            # Configurar layout de la pestaña
             tab_dia.columnconfigure(0, weight=1)
             tab_dia.rowconfigure(1, weight=1)
 
-            ttk.Label(tab_dia, text=f"Rutina para el día: {dia}", font=("Arial", 11, "bold")).grid(row=0, column=0,
+            ttk.Label(tab_dia, text=f"Rutina para el día: {dia[1]}", font=("Arial", 11, "bold")).grid(row=0, column=0,
                                                                                                    pady=10)
+            cols_all = ("exercise_name", "series", "reps", "id_dia", "exercise_id", "day_exercise_id", "set_id", "Borrar")
+            tabla_dia = ttk.Treeview(tab_dia, columns=cols_all, show="headings")
 
-            # Tabla interactiva para este día específico
-            cols_rut = ("Ejercicio", "Series", "Reps", "Nota")
-            tabla_dia = ttk.Treeview(tab_dia, columns=cols_rut, show="headings")
+            columnas_visibles = {
+                "exercise_name": "Ejercicio",
+                "series": "Series",
+                "reps": "Reps",
+                "Borrar": "Acción"
+            }
 
-            for col in cols_rut:
-                tabla_dia.heading(col, text=col)
-                tabla_dia.column(col, width=80)
+            for col, nombre in columnas_visibles.items():
+                tabla_dia.heading(col, text=nombre)
+                tabla_dia.column(col, width=100, anchor="center")
 
             tabla_dia.grid(row=1, column=0, sticky="nsew")
 
-            # Guardamos la referencia de la tabla asociada a este día
-            tablas_por_dia[dia] = tabla_dia
+            columnas_ocultas = ("id_dia", "exercise_id", "day_exercise_id", "set_id")
+
+            for col in columnas_ocultas:
+                tabla_dia.heading(col, text="")
+                tabla_dia.column(col, width=0, stretch=tk.NO)
+
+            tabla_dia.grid(row=1, column=0, sticky="nsew")
+
+            tablas_por_dia[dia[1]] = {
+                "id_dia": dia[0],
+                "widget": tabla_dia,
+                "routine_id": routine_id,
+            }
+
+    def cargar_ejercicio(inforeps, exercise_id, exercise_name):
+        id_pestania_activa = notebook_dias.select()
+        if not id_pestania_activa: return
+        nombre_dia_actual = notebook_dias.tab(id_pestania_activa, "text")
+        info_dia = tablas_por_dia.get(nombre_dia_actual)
+        tabla_objetivo = info_dia["widget"]
+
+        obj = day_exercise.insert(info_dia["id_dia"], exercise_id, inforeps["reps"],inforeps["series"])
+
+        valores_tupla = (
+            exercise_name,
+            obj["series"],
+            obj["repeticiones"],
+            info_dia["id_dia"],
+            exercise_id,
+            obj["day_exercise_id"],
+            obj["set_id"],
+            "❌"
+        )
+
+        tabla_objetivo.insert('', tk.END, values=valores_tupla)
+
+
+
 
     def accion_completado(event):
+        item_id = tabla_selector.identify_row(event.y)
+        valores = tabla_selector.item(item_id, 'values')
+        excercise_id = valores[0]
+        inforeps = abrir_modal_almacenar(valores[1])
+        if inforeps != None:
+            cargar_ejercicio(inforeps, excercise_id, valores[1])
 
-        item_id = tabla_datos.identify_row(event.y)
-        columna_id = tabla_datos.identify_column(event.x)
 
-        print("Actualizando tabla", item_id, columna_id)
-        valores = tabla_datos.item(item_id, 'values')
-        producto = valores[0]
-        print("Producto: ", producto)
-        print("Valor: ", valores)
 
+
+    def abrir_modal_almacenar(ejercicio_nombre):
+        modal = tk.Toplevel(root)
+        modal.title("Capturar Datos")
+        width, height = 400, 350
+        main_x = root.winfo_x()
+        main_y = root.winfo_y()
+        main_width = root.winfo_width()
+        main_height = root.winfo_height()
+        pos_x = main_x + (main_width // 2) - (width // 2)
+        pos_y = main_y + (main_height // 2) - (height // 2)
+        modal.geometry(f"{width}x{height}+{pos_x}+{pos_y}")
+        modal.grab_set()
+
+        ttk.Label(modal, text=f"Datos para: {ejercicio_nombre}", font=("Arial", 10, "bold")).pack(pady=10)
+        series_var = tk.StringVar()
+        reps_var = tk.StringVar()
+
+        ttk.Label(modal, text="Series:").pack()
+        ttk.Entry(modal, textvariable=series_var).pack(pady=5)
+        ttk.Label(modal, text="Repeticiones:").pack()
+        ttk.Entry(modal, textvariable=reps_var).pack(pady=5)
+
+        confirmado = tk.BooleanVar(value=False)
+
+        def guardar():
+            confirmado.set(True)
+            modal.destroy()
+
+        ttk.Button(modal, text="Guardar", command=guardar).pack()
+        root.wait_window(modal)
+
+        if confirmado.get():
+            return {
+                "series": series_var.get(),
+                "reps": reps_var.get(),
+            }
+        else:
+            return None
+
+
+
+
+    """
     def cambio_de_pagina(event):
         # Obtiene el ID de la pestaña actualmente seleccionada
         indice_actual = notebook.index(notebook.select())
@@ -119,7 +203,7 @@ def main():
     # 1. Inicialización de la ventana principal
     root = tk.Tk()
     root.title("Gestor de Rutinas")
-    root.geometry("1000x600")
+    root.geometry("1200x600")
 
     notebook = ttk.Notebook(root)
     notebook.pack(expand=True, fill='both')
@@ -197,7 +281,7 @@ def main():
     frame_nueva_rutina = ttk.Frame(notebook, padding="20")
     notebook.add(frame_nueva_rutina, text="Nueva Rutina")
 
-    """
+
     #Nuevo Frame
     frame_nueva_rutina.columnconfigure(0, weight=1)
     frame_nueva_rutina.columnconfigure(1, weight=1)
@@ -231,11 +315,13 @@ def main():
     tabla_selector.column("Id", width=0, stretch=tk.NO)
     tabla_selector.column("Imagen", width=0, stretch=tk.NO)
 
+    tabla_selector.bind("<ButtonRelease-1>", accion_completado)
+
     # --- PANEL DERECHO: Pestañas de Días (Verde/Naranja en tu diagrama) ---
     # Aquí creamos un Notebook interno que contendrá los días
     notebook_dias = ttk.Notebook(frame_nueva_rutina)
     notebook_dias.grid(row=0, column=1, sticky="nsew")
-|   """
+
     root.mainloop()
 
 

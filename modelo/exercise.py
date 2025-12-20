@@ -1,4 +1,4 @@
-class Excercise:
+class Exercise:
     def __init__(self, conn):
         self.conn = conn
 

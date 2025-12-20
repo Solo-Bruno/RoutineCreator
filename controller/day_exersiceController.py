@@ -1,0 +1,26 @@
+from modelo.day_exercise import DayExercise
+from controller.setController import setController
+
+class DayExersiceController:
+    def __init__(self, conn):
+        self.conn = conn
+        self.day_exercise = DayExercise(self.conn)
+        self.set = setController(self.conn)
+
+
+
+    def insert(self, day_id:int, exercise_id:int, repeticiones:int, series:int):
+        try:
+            cant = self.day_exercise.findByDayId(day_id, exercise_id)
+            day_exercise_id = self.day_exercise.insert(day_id, exercise_id, cant+1)
+            set = self.set.insert(day_exercise_id, series, repeticiones)
+            objSet = {
+                'day_exercise_id': day_exercise_id,
+                'set_id': set[0],
+                'series': set[1],
+                'repeticiones': set[2],
+            }
+            return objSet
+
+        except Exception as e:
+            raise e

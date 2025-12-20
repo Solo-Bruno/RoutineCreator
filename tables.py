@@ -66,7 +66,7 @@ def createTableDayExercise(conn, cursor):
     try:
         cursor.execute(DayExercise)
         conn.commit()
-        print("✅ Table created DayExcercise successfully.")
+        print("✅ Table created DayExercise successfully.")
     except (Exception, psycopg2.Error) as error:
         print(f"❌ Error creating Set table: {error}")
         conn.rollback()

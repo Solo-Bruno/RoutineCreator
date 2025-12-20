@@ -12,7 +12,7 @@ class routineController:
     def crearRutina(self, name: str, dias: List[str]):
         try:
             newRoutineId = self.routinaConeccion.insert(name)
-            dayController.dayController(self.conn).createDays(dias, newRoutineId)
+            dayController.DayController(self.conn).createDays(dias, newRoutineId)
             return newRoutineId
         except Exception as e:
             print(e)

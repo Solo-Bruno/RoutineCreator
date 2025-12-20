@@ -20,7 +20,7 @@ class Day:
     def findAllByRoutineId(self, routine_id: int):
         cur = self.conn.cursor()
         try:
-            cur.execute("SELECT * FROM Day WHERE routine_id = %s;", (routine_id,))
+            cur.execute("SELECT id, name FROM Day WHERE routine_id = %s;", (routine_id,))
             rows = cur.fetchall()
             return rows
         except Exception as e:

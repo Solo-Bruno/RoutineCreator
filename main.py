@@ -99,11 +99,14 @@ def main():
 
             tabla_dia.grid(row=1, column=0, sticky="nsew")
 
+            tabla_dia.bind("<ButtonRelease-1>", eliminar_day_exercise)
+
             tablas_por_dia[dia[1]] = {
                 "id_dia": dia[0],
                 "widget": tabla_dia,
                 "routine_id": routine_id,
             }
+
 
     def cargar_ejercicio(inforeps, exercise_id, exercise_name):
         id_pestania_activa = notebook_dias.select()
@@ -181,6 +184,15 @@ def main():
             return None
 
 
+    def eliminar_day_exercise(event):
+        tabla = event.widget
+        item_id = tabla.identify_row(event.y)
+        values = tabla.item(item_id, 'values')
+        try:
+            day_exercise.delete(values[5],values[6])
+            tabla.delete(item_id)
+        except Exception as e:
+            raise e
 
 
     """

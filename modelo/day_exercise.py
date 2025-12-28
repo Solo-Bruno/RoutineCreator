@@ -17,10 +17,10 @@ class DayExercise:
 
 
 
-    def findByDayId(self, day_id: int, exercise_id: int):
+    def findCantByDayId(self, day_id: int, exercise_id: int):
         cursor = self.conn.cursor()
         try:
-            cursor.execute("SELECT COUNT(*) FROM Day_Exercise WHERE day_id = %s AND exercise_id = %s", (day_id, exercise_id))
+            cursor.execute("SELECT COUNT(*) FROM Day_Exercise WHERE day_id = %s ", (day_id,))
             ret = cursor.fetchone()[0]
             return ret
         except Exception as e:
@@ -37,5 +37,16 @@ class DayExercise:
             return ret
         except Exception as e:
             self.conn.rollback()
+        finally:
+            cursor.close()
+
+    def delete(self, day_exercise: int):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("DELETE FROM Day_Exercise WHERE id = %s", (day_exercise,))
+            self.conn.commit()
+        except Exception as e:
+            self.conn.rollback()
+            raise e
         finally:
             cursor.close()

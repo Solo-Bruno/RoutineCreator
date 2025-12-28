@@ -29,3 +29,14 @@ class Set:
             cursor.close()
 
 
+
+    def delete(self, id: int):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("DELETE FROM Set WHERE id = %s;", (id,))
+            self.conn.commit()
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+        finally:
+            cursor.close()

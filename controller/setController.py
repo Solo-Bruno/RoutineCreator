@@ -21,3 +21,9 @@ class setController:
         except Exception as e:
             raise e
 
+
+    def deleteById(self, set_id:int):
+        try:
+            self.set.delete(set_id)
+        except Exception as e:
+            raise e

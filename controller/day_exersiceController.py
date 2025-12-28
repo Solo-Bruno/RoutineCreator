@@ -11,7 +11,7 @@ class DayExersiceController:
 
     def insert(self, day_id:int, exercise_id:int, repeticiones:int, series:int):
         try:
-            cant = self.day_exercise.findByDayId(day_id, exercise_id)
+            cant = self.day_exercise.findCantByDayId(day_id, exercise_id)
             day_exercise_id = self.day_exercise.insert(day_id, exercise_id, cant+1)
             set = self.set.insert(day_exercise_id, series, repeticiones)
             objSet = {
@@ -22,5 +22,13 @@ class DayExersiceController:
             }
             return objSet
 
+        except Exception as e:
+            raise e
+
+    def delete(self, day_exercise_id:int, set_id:int):
+        try:
+            self.set.deleteById(set_id)
+            self.day_exercise.delete(day_exercise_id)
+            print('delete')
         except Exception as e:
             raise e

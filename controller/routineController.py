@@ -16,3 +16,9 @@ class routineController:
             return newRoutineId
         except Exception as e:
             print(e)
+
+    def obtener_datos_rutina_completa(self, routine_id: int):
+        try:
+            self.routinaConeccion.obtener_datos_rutina_completa(routine_id)
+        except Exception as e:
+            print(e)

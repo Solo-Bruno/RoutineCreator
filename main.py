@@ -27,10 +27,12 @@ def main():
     Seed(conn).init()
 
     def crear_rutina():
+
         seleccionados = [nombre for nombre, var in dict_dias.items() if var.get()]
         routine = rout_con.crearRutina(input_nombre.get(), seleccionados)
         misDIas = dey_con.findDayByRoutineId(routine)
         renderizar_pestanas_rutina(misDIas, routine)
+        root.current_routine_id = routine
         notebook.select(1)
 
     def evento_tabla(event):
@@ -194,6 +196,9 @@ def main():
         except Exception as e:
             raise e
 
+    def genereted_PDF():
+        print(root.current_routine_id)
+
 
     """
     def cambio_de_pagina(event):
@@ -204,6 +209,18 @@ def main():
             print("Navegando a la pestaña: Inicio")
         elif indice_actual == 1:
             print("Navegando a la pestaña: Datos")
+    
+    datos = {
+            id_routina
+            name
+            "days": {
+                "day_exercise":{
+                exersice_name
+                series
+                repeticiones
+                }
+            }
+        }
     
     """
     # Datos a cargar
@@ -330,9 +347,12 @@ def main():
     tabla_selector.bind("<ButtonRelease-1>", accion_completado)
 
     # --- PANEL DERECHO: Pestañas de Días (Verde/Naranja en tu diagrama) ---
-    # Aquí creamos un Notebook interno que contendrá los días
+
     notebook_dias = ttk.Notebook(frame_nueva_rutina)
     notebook_dias.grid(row=0, column=1, sticky="nsew")
+
+    btn_pdf = ttk.Button(frame_nueva_rutina, text="PDF", command=genereted_PDF)
+    btn_pdf.grid(row=1, column=1, sticky="nsew")
 
     root.mainloop()
 

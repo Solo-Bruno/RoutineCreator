@@ -6,9 +6,9 @@ class setController:
         self.set = Set(self.conn)
 
 
-    def insert(self, day_id:int, cant:int, reps:int):
+    def insert(self, day_id:int, cant:int, reps:int, peso:int):
         try:
-            set_id = self.set.create(cant, reps, day_id)
+            set_id = self.set.create(cant, reps, day_id, peso)
             obj = self.set.findById(set_id)
             return obj
         except Exception as e:

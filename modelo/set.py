@@ -3,10 +3,10 @@ class Set:
         self.conn = conn
 
 
-    def create(self, cant: int, rep: int, day_exercise_id: int):
+    def create(self, cant: int, rep: int, day_exercise_id: int, peso: int):
         cursor = self.conn.cursor()
         try:
-            cursor.execute("INSERT INTO Set(cantidad,repeticiones,day_exercise_id) VALUES (%s, %s, %s) RETURNING id;", (cant,rep,day_exercise_id))
+            cursor.execute("INSERT INTO Set(cantidad,repeticiones,day_exercise_id, peso) VALUES (%s, %s, %s, %s) RETURNING id;", (cant,rep,day_exercise_id,peso))
             self.conn.commit()
             ret =  cursor.fetchone()[0]
             return ret

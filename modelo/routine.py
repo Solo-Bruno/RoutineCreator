@@ -47,7 +47,8 @@ class Routine:
                     d.name as day_name,
                     e.nombre as exercise_name,
                     s.cantidad as series,
-                    s.repeticiones as reps
+                    s.repeticiones as reps,
+                    s.peso as peso
                 FROM Routine r
                 JOIN Day d ON r.id = d.routine_id
                 JOIN Day_Exercise de ON d.id = de.day_id
@@ -58,7 +59,7 @@ class Routine:
                 """
             cursor.execute(query, (routine_id,))
             rows = cursor.fetchall()
-            print(rows)
+            return rows
         except Exception as e:
             self.conn.rollback()
             raise e

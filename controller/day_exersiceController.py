@@ -9,16 +9,17 @@ class DayExersiceController:
 
 
 
-    def insert(self, day_id:int, exercise_id:int, repeticiones:int, series:int):
+    def insert(self, day_id:int, exercise_id:int, repeticiones:int, series:int, peso:int):
         try:
             cant = self.day_exercise.findCantByDayId(day_id, exercise_id)
             day_exercise_id = self.day_exercise.insert(day_id, exercise_id, cant+1)
-            set = self.set.insert(day_exercise_id, series, repeticiones)
+            set = self.set.insert(day_exercise_id, series, repeticiones, peso)
             objSet = {
                 'day_exercise_id': day_exercise_id,
                 'set_id': set[0],
                 'series': set[1],
                 'repeticiones': set[2],
+                'peso': set[3]
             }
             return objSet
 

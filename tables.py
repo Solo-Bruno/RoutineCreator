@@ -78,6 +78,7 @@ def createSetTable(conn, cursor):
         id SERIAL PRIMARY KEY,
         cantidad INTEGER NOT NULL,
         repeticiones INTEGER NOT NULL,
+        peso INTEGER NOT NULL,
     
         -- FK a la tabla intermedia
         day_exercise_id INTEGER REFERENCES Day_Exercise(id) ON DELETE CASCADE

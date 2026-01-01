@@ -17,8 +17,29 @@ class routineController:
         except Exception as e:
             print(e)
 
-    def obtener_datos_rutina_completa(self, routine_id: int):
+    def obtener_datos_rutina_completa(self, routine_id):
         try:
-            self.routinaConeccion.obtener_datos_rutina_completa(routine_id)
+            rows = self.routinaConeccion.obtener_datos_rutina_completa(routine_id)
+            resultado = {
+                "id_rutina": routine_id,
+                "name": rows[0][0],
+                "days": {}
+            }
+
+            for row in rows:
+                _, day_name, ex_name, series, reps, peso = row
+
+                if day_name not in resultado["days"]:
+                    resultado["days"][day_name] = []
+
+                resultado["days"][day_name].append({
+                    "exercise_name": ex_name,
+                    "series": series,
+                    "repeticiones": reps,
+                    "peso": peso
+                })
+
+            return resultado
+
         except Exception as e:
             print(e)

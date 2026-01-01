@@ -117,7 +117,7 @@ def main():
         info_dia = tablas_por_dia.get(nombre_dia_actual)
         tabla_objetivo = info_dia["widget"]
 
-        obj = day_exercise.insert(info_dia["id_dia"], exercise_id, inforeps["reps"],inforeps["series"])
+        obj = day_exercise.insert(info_dia["id_dia"], exercise_id, inforeps["reps"],inforeps["series"], inforeps["peso"])
 
         valores_tupla = (
             exercise_name,
@@ -137,6 +137,7 @@ def main():
 
     def accion_completado(event):
         item_id = tabla_selector.identify_row(event.y)
+        if(item_id == "" or item_id == None): return
         valores = tabla_selector.item(item_id, 'values')
         excercise_id = valores[0]
         inforeps = abrir_modal_almacenar(valores[1])
@@ -160,13 +161,16 @@ def main():
         modal.grab_set()
 
         ttk.Label(modal, text=f"Datos para: {ejercicio_nombre}", font=("Arial", 10, "bold")).pack(pady=10)
-        series_var = tk.StringVar()
-        reps_var = tk.StringVar()
+        series_var = tk.IntVar(value=4)
+        reps_var = tk.IntVar(value=12)
+        peso_var = tk.IntVar(value=20)
 
         ttk.Label(modal, text="Series:").pack()
         ttk.Entry(modal, textvariable=series_var).pack(pady=5)
         ttk.Label(modal, text="Repeticiones:").pack()
         ttk.Entry(modal, textvariable=reps_var).pack(pady=5)
+        ttk.Label(modal, text="Peso:").pack()
+        ttk.Entry(modal, textvariable=peso_var).pack(pady=5)
 
         confirmado = tk.BooleanVar(value=False)
 
@@ -181,6 +185,7 @@ def main():
             return {
                 "series": series_var.get(),
                 "reps": reps_var.get(),
+                "peso": peso_var.get(),
             }
         else:
             return None
@@ -189,6 +194,7 @@ def main():
     def eliminar_day_exercise(event):
         tabla = event.widget
         item_id = tabla.identify_row(event.y)
+        if(item_id == "" or item_id == None): return
         values = tabla.item(item_id, 'values')
         try:
             day_exercise.delete(values[5],values[6])
@@ -197,7 +203,11 @@ def main():
             raise e
 
     def genereted_PDF():
-        print(root.current_routine_id)
+
+        routine_id = root.current_routine_id
+        print(routine_id)
+        ret = rout_con.obtener_datos_rutina_completa(routine_id)
+        print(ret)
 
 
     """

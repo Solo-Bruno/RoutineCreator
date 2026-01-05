@@ -27,13 +27,14 @@ class routineController:
             }
 
             for row in rows:
-                _, day_name, ex_name, series, reps, peso = row
+                _, day_name, ex_name, e_img,series, reps, peso = row
 
                 if day_name not in resultado["days"]:
                     resultado["days"][day_name] = []
 
                 resultado["days"][day_name].append({
                     "exercise_name": ex_name,
+                    "exercise_img": e_img,
                     "series": series,
                     "repeticiones": reps,
                     "peso": peso

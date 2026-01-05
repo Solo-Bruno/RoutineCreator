@@ -1,14 +1,44 @@
 from fpdf import FPDF
+from fpdf.enums import XPos, YPos
 
-class PDFRutina(FPDF):
+
+class RutinaPDF(FPDF):
+
+    def __init__(self, nombre_rutina):
+        super().__init__()
+        self.nombre_rutina = nombre_rutina
+
     def header(self):
-        # Configurar fuente: Arial, Negrita, 15
-        self.set_font("Arial", "B", 15)
-        # Título centrado
-        self.cell(0, 10, "MI RUTINA PERSONALIZADA", border=False, ln=True, align="C")
-        self.ln(5) # Salto de línea
+        self.set_font('Helvetica', 'B', 16)
+        self.set_fill_color(0, 0, 0)
+        self.set_text_color(255, 255, 255)
 
-    def footer(self):
-        self.set_y(-15) # 1.5 cm desde el final
-        self.set_font("Arial", "I", 8)
-        self.cell(0, 10, f"Página {self.page_no()}", align="C")
+
+        self.cell(0, 18, self.nombre_rutina.upper(), align='C',
+                  new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+        self.set_text_color(0, 0, 0)
+        self.ln(2)
+
+    def draw_exercise(self, x, y, exercise):
+        w_card = 45
+        img_h = 35
+        # Dibujar Imagen
+        try:
+            self.image(exercise['exercise_img'], x=x, y=y, w=w_card, h=img_h)
+        except:
+            self.rect(x, y, w_card, img_h)  # Recuadro si no hay imagen
+            self.set_xy(x, y + (img_h / 2))
+            self.set_font('Helvetica', 'I', 7)
+            self.cell(w_card, 5, "Sin Imagen", align='C')
+
+        # Datos del ejercicio
+        self.set_xy(x, y + img_h + 2)
+        self.set_font('Helvetica', 'B', 9)
+        info_text = f"{exercise['series']}X{exercise['repeticiones']} ({exercise['peso']}kg)"
+        self.cell(w_card, 5, info_text, align='C', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+        # Nombre del ejercicio
+        self.set_x(x)
+        self.set_font('Helvetica', '', 8)
+        self.multi_cell(w_card, 4, exercise['exercise_name'].upper(), align='C')

@@ -46,6 +46,7 @@ class Routine:
                     r.name as routine_name,
                     d.name as day_name,
                     e.nombre as exercise_name,
+                    e.img as exercise_img,
                     s.cantidad as series,
                     s.repeticiones as reps,
                     s.peso as peso

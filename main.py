@@ -1,9 +1,14 @@
+import os
+import subprocess
+import platform
+from fpdf import XPos, YPos
 from connection import Connection
 import tables
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
 from controller.exersiceController import ExcerciseController
+from controller.pdf_config import RutinaPDF
 from seeds.seed import Seed
 from controller.routineController import routineController
 from controller.dayController import DayController
@@ -206,8 +211,65 @@ def main():
 
         routine_id = root.current_routine_id
         print(routine_id)
-        ret = rout_con.obtener_datos_rutina_completa(routine_id)
-        print(ret)
+        data = rout_con.obtener_datos_rutina_completa(routine_id)
+
+        download_path = os.path.join(os.path.expanduser('~'), 'Downloads')
+        nombre_archivo = f"Rutina_{data['name']}.pdf"
+        ruta_final = os.path.join(download_path, nombre_archivo)
+
+        pdf = RutinaPDF(data['name'])
+        pdf.add_page()
+
+        margin_left = 10
+        col_width = 48  # Ajustado para que quepan 4 bien
+        row_height = 60  # Espacio vertical total por cada fila de ejercicios
+
+        for dia, ejercicios in data['days'].items():
+            # 1. Título del Día (Siempre centrado)
+            pdf.set_font('Helvetica', 'B', 14)
+            pdf.ln(10)  # Espacio extra antes del título del día
+            pdf.cell(0, 10, f"--- {dia.upper()} ---", align='C',
+                     new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+            pdf.ln(5)
+
+            # Guardamos el punto de inicio de la cuadrícula para este día
+            y_inicial_ejercicios = pdf.get_y()
+
+            for count, ex in enumerate(ejercicios):
+                col = count % 4
+                row = count // 4
+
+                x_pos = margin_left + (col * col_width)
+                y_pos = y_inicial_ejercicios + (row * row_height)
+
+                # Dibujar el bloque
+                pdf.draw_exercise(x_pos, y_pos, ex)
+
+            # 2. ACTUALIZACIÓN CRÍTICA: Mover el cursor al final de todos los ejercicios
+            # Calculamos cuántas filas se crearon para saltar el cursor Y
+            num_filas = (len(ejercicios) - 1) // 4 + 1
+            nuevo_y = y_inicial_ejercicios + (num_filas * row_height) + 10
+
+            # Si el espacio que queda es muy poco, saltamos de página
+            if nuevo_y > 250:
+                pdf.add_page()
+            else:
+                pdf.set_y(nuevo_y)
+
+        pdf.output(ruta_final)
+        respuesta = messagebox.askyesno("PDF Generado",
+                                        f"La rutina se guardó en Descargas como:\n{nombre_archivo}\n\n¿Deseas abrir el archivo ahora?")
+
+        if respuesta:
+            abrir_archivo(ruta_final)
+
+    def abrir_archivo(ruta):
+        if platform.system() == 'Windows':
+            os.startfile(ruta)
+        elif platform.system() == 'Darwin':  # macOS
+            subprocess.call(['open', ruta])
+        else:
+            subprocess.call(['xdg-open', ruta])
 
 
     """

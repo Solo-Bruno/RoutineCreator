@@ -41,3 +41,15 @@ class Day:
         finally:
             cur.close()
 
+
+    def cant_days(self, routine_id: int):
+        cur = self.conn.cursor()
+        try:
+            cur.execute("SELECT COUNT(*) FROM Day WHERE routine_id = %s;", (routine_id,))
+            row = cur.fetchone()
+            return row[0]
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+        finally:
+            cur.close()

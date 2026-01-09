@@ -40,9 +40,7 @@ def main():
         root.current_routine_id = routine
         notebook.select(1)
 
-    def evento_tabla(event):
-        """#TODO Evento disparado al interactuar con la tabla"""
-        pass
+
 
     def validar_seleccion(*args):
 
@@ -67,6 +65,97 @@ def main():
             tabla_selector.insert('', tk.END, values=fila_con_accion)
 
     tablas_por_dia = {}
+
+    def cargar_ultimos_ejercicios(tabla_rutinas):
+        data = rout_con.obtener_ultimos_cinco()
+
+        for item in tabla_rutinas.get_children():
+            tabla_rutinas.delete(item)
+
+        for fila in data:
+            valores = (
+                fila["id_rutina"],
+                fila["name"],
+                fila["days"],
+            )
+            tabla_rutinas.insert('', tk.END, values=valores)
+
+    def evento_tabla(event):
+        """#TODO Evento disparado al interactuar con la tabla"""
+        tabla = event.widget
+        seleccion = tabla.selection()
+        if not seleccion:
+            return
+        itemId = seleccion[0]
+        valores = tabla.item(itemId, "values")
+        routine_id = valores[0]
+        #TODO
+        data = rout_con.obtener_datos_rutina_completa(routine_id)
+
+        for tab in notebook_dias.tabs():
+            notebook_dias.forget(tab)
+        tablas_por_dia.clear()
+
+        for day, values in data['days'].items():
+            tab_dia = ttk.Frame(notebook_dias, padding="10")
+            notebook_dias.add(tab_dia, text=day)
+
+            tab_dia.columnconfigure(0, weight=1)
+            tab_dia.rowconfigure(1, weight=1)
+
+            ttk.Label(tab_dia, text=f"Rutina para el día: {day}", font=("Arial", 11, "bold")).grid(row=0, column=0,
+                                                                                                      pady=10)
+            cols_all = ("exercise_name", "series", "reps", "id_dia", "exercise_id", "day_exercise_id", "set_id",
+                        "Borrar")
+            tabla_dia = ttk.Treeview(tab_dia, columns=cols_all, show="headings")
+
+            columnas_visibles = {
+                "exercise_name": "Ejercicio",
+                "series": "Series",
+                "reps": "Reps",
+                "Borrar": "Acción"
+            }
+
+            for col, nombre in columnas_visibles.items():
+                tabla_dia.heading(col, text=nombre)
+                tabla_dia.column(col, width=100, anchor="center")
+
+            tabla_dia.grid(row=1, column=0, sticky="nsew")
+
+            columnas_ocultas = ("id_dia", "exercise_id", "day_exercise_id", "set_id")
+
+            for col in columnas_ocultas:
+                tabla_dia.heading(col, text="")
+                tabla_dia.column(col, width=0, stretch=tk.NO)
+
+            tabla_dia.grid(row=1, column=0, sticky="nsew")
+
+            tabla_dia.bind("<ButtonRelease-1>", eliminar_day_exercise)
+
+
+            tablas_por_dia[day] = {
+                "id_dia": values["day_id"],
+                "widget": tabla_dia,
+                "routine_id": routine_id,
+            }
+
+            
+            for item in values["exercises"]:
+                valores_tupla = (
+                    item["exercise_name"],
+                    item["series"],
+                    item["repeticiones"],
+                    values["day_id"],
+                    item["exercise_id"],
+                    item["day_exercise_id"],
+                    item["set_id"],
+                    "❌"
+                )
+
+                tabla_dia.insert('', tk.END, values=valores_tupla)
+
+        root.current_routine_id = routine_id
+        notebook.select(1)
 
     def renderizar_pestanas_rutina(dias_seleccionados: List[str], routine_id: int):
         for tab in notebook_dias.tabs():
@@ -113,7 +202,6 @@ def main():
                 "widget": tabla_dia,
                 "routine_id": routine_id,
             }
-
 
     def cargar_ejercicio(inforeps, exercise_id, exercise_name):
         id_pestania_activa = notebook_dias.select()
@@ -221,40 +309,33 @@ def main():
         pdf.add_page()
 
         margin_left = 10
-        col_width = 48  # Ajustado para que quepan 4 bien
-        row_height = 60  # Espacio vertical total por cada fila de ejercicios
+        col_width = 48
+        row_height = 70
 
         for dia, ejercicios in data['days'].items():
-            # 1. Título del Día (Siempre centrado)
+
             pdf.set_font('Helvetica', 'B', 14)
-            pdf.ln(10)  # Espacio extra antes del título del día
+            pdf.ln(5)
             pdf.cell(0, 10, f"--- {dia.upper()} ---", align='C',
                      new_x=XPos.LMARGIN, new_y=YPos.NEXT)
             pdf.ln(5)
 
-            # Guardamos el punto de inicio de la cuadrícula para este día
-            y_inicial_ejercicios = pdf.get_y()
+            y_grid = pdf.get_y()
 
-            for count, ex in enumerate(ejercicios):
+            for count, ex in enumerate(ejercicios["exercises"]):
                 col = count % 4
                 row = count // 4
 
                 x_pos = margin_left + (col * col_width)
-                y_pos = y_inicial_ejercicios + (row * row_height)
+                y_pos = y_grid + (row * row_height)
 
-                # Dibujar el bloque
+                if y_pos > 300:
+                    pdf.add_page()
+                    y_grid = pdf.get_y() + 5
+                    y_pos = y_grid
+
                 pdf.draw_exercise(x_pos, y_pos, ex)
-
-            # 2. ACTUALIZACIÓN CRÍTICA: Mover el cursor al final de todos los ejercicios
-            # Calculamos cuántas filas se crearon para saltar el cursor Y
-            num_filas = (len(ejercicios) - 1) // 4 + 1
-            nuevo_y = y_inicial_ejercicios + (num_filas * row_height) + 10
-
-            # Si el espacio que queda es muy poco, saltamos de página
-            if nuevo_y > 250:
-                pdf.add_page()
-            else:
-                pdf.set_y(nuevo_y)
+            pdf.add_page()
 
         pdf.output(ruta_final)
         respuesta = messagebox.askyesno("PDF Generado",
@@ -358,20 +439,19 @@ def main():
     container_der = ttk.Frame(frame_inicio)
     container_der.grid(row=0, column=1, sticky="nsew", padx=20)
     ttk.Label(container_der, text="Últimas rutinas", font=("Arial", 12, "bold")).pack(anchor="w", pady=(0, 10))
-    columnas_rutina = ("ID", "Fecha", "Nombre", "Estado")
+    columnas_rutina = ("id_rutina", "name", "days")
     tabla_rutinas = ttk.Treeview(container_der, columns=columnas_rutina, show='headings', height=10)
 
-    tabla_rutinas.heading("ID", text="ID")
-    tabla_rutinas.heading("Fecha", text="Fecha")
-    tabla_rutinas.heading("Nombre", text="Nombre")
-    tabla_rutinas.heading("Estado", text="Estado")
-    tabla_rutinas.column("ID", width=0, stretch=tk.NO)
-    tabla_rutinas.column("Fecha", width=100)
-    tabla_rutinas.column("Nombre", width=150)
-    tabla_rutinas.column("Estado", width=100)
+    tabla_rutinas.heading("id_rutina", text="ID")
+    tabla_rutinas.heading("name", text="Nombre")
+    tabla_rutinas.heading("days", text="Dias")
+    tabla_rutinas.column("id_rutina", width=100)
+    tabla_rutinas.column("name", width=100)
+    tabla_rutinas.column("days", width=150)
+
 
     tabla_rutinas.pack(expand=True, fill='both')
-
+    cargar_ultimos_ejercicios(tabla_rutinas)
 
 
     tabla_rutinas.bind("<<TreeviewSelect>>", evento_tabla)

@@ -44,12 +44,16 @@ class Routine:
             query = """
                 SELECT 
                     r.name as routine_name,
+                    d.id as day_id,
                     d.name as day_name,
+                    e.id as exercise_id,
                     e.nombre as exercise_name,
                     e.img as exercise_img,
+                    s.id as set_id,
                     s.cantidad as series,
                     s.repeticiones as reps,
-                    s.peso as peso
+                    s.peso as peso,
+                    de.id as day_exercise_id
                 FROM Routine r
                 JOIN Day d ON r.id = d.routine_id
                 JOIN Day_Exercise de ON d.id = de.day_id
@@ -66,3 +70,17 @@ class Routine:
             raise e
         finally:
             cursor.close()
+
+    def obtener_ultimos_5(self):
+        cursor = self.conn.cursor()
+        try:
+            query = "SELECT * FROM Routine as r ORDER BY r.id DESC LIMIT 5;"
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            return rows
+        except Exception as e:
+            self.conn.rollback()
+            raise e
+        finally:
+            cursor.close()
+

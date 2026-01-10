@@ -306,14 +306,13 @@ def main():
         ruta_final = os.path.join(download_path, nombre_archivo)
 
         pdf = RutinaPDF(data['name'])
-        pdf.add_page()
 
         margin_left = 10
         col_width = 48
         row_height = 70
 
         for dia, ejercicios in data['days'].items():
-
+            pdf.add_page()
             pdf.set_font('Helvetica', 'B', 14)
             pdf.ln(5)
             pdf.cell(0, 10, f"--- {dia.upper()} ---", align='C',
@@ -335,7 +334,7 @@ def main():
                     y_pos = y_grid
 
                 pdf.draw_exercise(x_pos, y_pos, ex)
-            pdf.add_page()
+
 
         pdf.output(ruta_final)
         respuesta = messagebox.askyesno("PDF Generado",
@@ -377,7 +376,7 @@ def main():
     
     """
     # Datos a cargar
-    tipo = ["PECTORALES", "PIERNAS", "GLÚTEOS", "TRICEPS", "ESPALDA", "BÍCEPS", "TRAPECIOS", "ABDOMINALES"]
+    tipo = ["PECTORALES", "PIERNAS", "GLÚTEOS", "TRICEPS", "ESPALDA", "BÍCEPS", "TRAPECIOS", "ABDOMINALES","HOMBROS", "ANTEBRAZO"]
 
     # ----------------------------------------------------------------------
     # CONFIGURACIÓN DE LA INTERFAZ (UI)
